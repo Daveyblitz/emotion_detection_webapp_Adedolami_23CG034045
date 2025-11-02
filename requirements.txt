@@ -1,6 +1,6 @@
 Flask==2.0.1
 DeepFace==0.0.65
-opencv-python==4.5.3.20210927
+opencv-python>=4.8.0
 numpy==1.21.2
 pandas==1.3.3
 tensorflow==2.6.0
