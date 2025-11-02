@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Live Emotion Capture</title>
+  </head>
+  <body>
+    <h1>Live Capture</h1>
+    <button id="startBtn">Start Live Capture</button>
+    <button id="stopBtn" disabled>Stop</button>
+    <div>
+      <img id="video" style="max-width:720px; display:none;" alt="Live feed">
+    </div>
+
+    <script>
+      const startBtn = document.getElementById('startBtn');
+      const stopBtn = document.getElementById('stopBtn');
+      const videoImg = document.getElementById('video');
+      let streaming = false;
+
+      async function startCapture() {
+        startBtn.disabled = true;
+        const res = await fetch('/start_stream', { method: 'POST' });
+        if (!res.ok) {
+          const body = await res.json().catch(()=>({error:'start failed'}));
+          alert('Could not start camera: ' + (body.error || res.status));
+          startBtn.disabled = false;
+          return;
+        }
+        videoImg.src = '/video_feed';
+        videoImg.style.display = 'block';
+        streaming = true;
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+      }
+
+      async function stopCapture() {
+        stopBtn.disabled = true;
+        await fetch('/stop_stream', { method: 'POST' }).catch(()=>{});
+        videoImg.src = '';
+        videoImg.style.display = 'none';
+        streaming = false;
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+      }
+
+      startBtn.onclick = () => { if (!streaming) startCapture(); };
+      stopBtn.onclick = () => { if (streaming) stopCapture(); };
+
+      // On load: try starting the stream (safe if already started) and attach feed automatically
+      window.addEventListener('DOMContentLoaded', async () => {
+        try {
+          // request server to ensure camera is started (no-op if already running)
+          await fetch('/start_stream', { method: 'POST' }).catch(()=>{});
+          // connect to video feed
+          videoImg.src = '/video_feed';
+          videoImg.style.display = 'block';
+          streaming = true;
+          startBtn.disabled = true;
+          stopBtn.disabled = false;
+        } catch (e) {
+          // ignore; user can click Start
+        }
+      });
+    </script>
+  </body>
+</html>
